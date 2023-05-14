@@ -8,7 +8,7 @@ LINE Messaging API チャンネル（LINE Developers コンソールで作成）
 
 ## インストール
 
-[リポジトリ]()をクローンするか、ソースコードをダウンロードします。
+[リポジトリ](https://github.com/kk-project/line-chatbot-with-chatgpt)をクローンするか、ソースコードをダウンロードします。
 
 プロジェクトディレクトリに移動します。
 
@@ -61,3 +61,7 @@ LINE Developers コンソールに移動し、チャネル設定を開きます�
 メッセージを送信すると、ChatGPT が応答します。
 
 ![代替テキスト](/public/screenshot/sample-chatbot-with-chatgpt.PNG)
+
+## 免責事項
+
+このアプリケーションは、ChatGPT と LINE メッセージングプラットフォームと統合する方法を示すデモンストレーションです
