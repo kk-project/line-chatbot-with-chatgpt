@@ -3,24 +3,20 @@ dotenv.config();
 
 import https from "https";
 import express from "express";
-
+import crypto from "crypto";
 import { Configuration, OpenAIApi } from "openai";
 
+const PORT = process.env.PORT || 3000;
+const LINE_ACCESS_TOKEN = process.env.LINE_ACCESS_TOKEN;
+const CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY not set");
 const ORGANIZATION = process.env.ORGANIZATION;
-if (!ORGANIZATION) throw new Error("ORGANIZATION not set");
 
 const configuration = new Configuration({
   apiKey: OPENAI_API_KEY,
   organization: ORGANIZATION,
 });
 const openai = new OpenAIApi(configuration);
-
-const DAVINCI_TURBO = "gpt-3.5-turbo";
-
-const PORT = process.env.PORT || 3000;
-const TOKEN = process.env.LINE_ACCESS_TOKEN;
 
 const app = express();
 
@@ -36,14 +32,27 @@ app.get("/", (req, res) => {
 });
 
 app.post("/webhook", async (req, res) => {
+  // 署名を検証する
+  const channelSecret = CHANNEL_SECRET;
+  const body = JSON.stringify(req.body);
+  const signature = crypto
+    .createHmac("SHA256", channelSecret)
+    .update(body)
+    .digest("base64");
+  if (req.headers["x-line-signature"] !== signature) {
+    // 署名が不正な場合は後続の処理は行わない
+    res.send("Signature is invalid.");
+    return;
+  }
+
   res.send("HTTP POST request sent to the webhook URL!");
   // ユーザーがボットにメッセージを送った場合、返信メッセージを送る
-  if (req.body.events[0].type === "message") {
+  if (req.body.events[0]?.type === "message") {
     const inputText = req.body.events[0].message.text;
 
     // OpenAI APIを使って返信メッセージを生成
     const completion = await openai.createChatCompletion({
-      model: DAVINCI_TURBO,
+      model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
@@ -74,7 +83,7 @@ app.post("/webhook", async (req, res) => {
     // リクエストヘッダー
     const headers = {
       "Content-Type": "application/json",
-      Authorization: "Bearer " + TOKEN,
+      Authorization: "Bearer " + LINE_ACCESS_TOKEN,
     };
 
     // リクエストに渡すオプション
